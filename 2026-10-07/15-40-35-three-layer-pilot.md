@@ -20,9 +20,16 @@ The baseline used cosine k-means, up to four prototypes per expert, minimum clus
 
 Two score mappings were also tested: a per-expert affine fit from best prototype similarity and a ridge readout over prototype similarities. Neither repaired the weak middle-layer result. The best recall observed in the broader exploratory readout sweep was 55.8%, 48.6%, and 60.6% for layers 0, 20, and 39; these are best-of-sweep values measured on the same held-out prompts and are optimistic diagnostics.
 
+## Detailed reading of the pilot
+
+The expected top-8 recall for uniform selection among 256 experts is 8/256 = 3.125%. The measured recalls are well above that reference, but recall alone does not indicate whether the selected experts receive appropriate weights. Layer 0 recovered about 6.0 of the teacher’s eight experts per state; layer 20 recovered about 3.9; layer 39 recovered about 5.6.
+
+Coverage and supported-state rate diagnose separate failure modes. Expert coverage is how many distinct native experts received at least one prototype during fitting. Top-8 support is the held-out state fraction where all eight native choices had a corresponding trained prototype. Layer 39 had the lowest expert coverage (193/256) but 98.1% supported states, while layer 20 had 230/256 experts represented and 97.8% support. Thus, expert coverage alone did not explain the weak layer-20 recall.
+
+The best-of-sweep readout recalls (55.8%, 48.6%, and 60.6%) were not a held-out model-selection estimate: the same held-out prompts informed the exploratory sweep. They should not be compared to the fixed baseline as an unbiased improvement.
+
 ## Interpretation and limits
 
 Prototype retrieval exceeded random top-8 selection, but performance varied substantially by layer. Layer 20 was the main failure point. The held-out sample was only 10 prompts, and prototype coverage ranged from 75% to 93% of experts. This pilot did not establish reliable full-depth behavior or generation-quality impact.
 
 Recall is the fraction of native selected experts recovered per token. Weight L1 compares dense 256-expert routing distributions; zero is perfect and two is the maximum.
-

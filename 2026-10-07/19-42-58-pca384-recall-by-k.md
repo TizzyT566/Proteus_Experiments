@@ -4,7 +4,7 @@
 
 ## Objective and protocol
 
-This analysis measured how PCA-384 HDBSCAN prototypes recovered native router contributors when the predicted active count varied from K=1 to K=8. It reused the 40-layer prototype evaluation and ran across topic-group seeds 23, 42, and 71. HDBSCAN used min_cluster_size 32, min_samples 5, and EOM; prototype scores used Euclidean max-prototype scoring.
+This analysis measured how PCA-384 HDBSCAN prototypes recovered native router contributors when the predicted active count varied from K=1 to K=8. It reused the 40-layer, 256-expert-per-layer prototype evaluation on 192 prompt variants from 48 source topics, with 38 topics for fitting and 10 held out in each split. Each layer had 8,592 training and 2,172 evaluation states. The analysis ran across topic-group seeds 23, 42, and 71. HDBSCAN used min_cluster_size 32, min_samples 5, and EOM; prototype scores used Euclidean max-prototype scoring.
 
 For K below eight, the teacher target was the K native experts with the largest captured gate weights. Reported values are macro-averages over layers. Split SD is across the three topic-group splits.
 
@@ -23,7 +23,29 @@ For K below eight, the teacher target was the K native experts with the largest 
 
 Matched-K recall is overlap between the predicted K experts and the teacher’s K highest-weight experts, divided by K. It need not improve monotonically as K decreases: the predicted rank-1 expert can be missed while lower-weight teacher experts are recovered at larger K. Top-8-pool coverage holds the predicted candidate pool at eight and measures whether teacher contributors appear anywhere in it.
 
+## Layer variation
+
+The table reports the minimum and maximum matched-K recall across the 40 layer means, where each layer mean averages the three topic-group seeds. The final columns identify the layers attaining those endpoints.
+
+| K | Lowest layer mean | Highest layer mean |
+| ---: | ---: | ---: |
+| 1 | 7.5% (layer 28) | 21.8% (layer 4) |
+| 2 | 20.1% (layer 25) | 34.3% (layer 35) |
+| 3 | 30.9% (layer 25) | 45.1% (layer 34) |
+| 4 | 41.6% (layer 25) | 54.8% (layer 34) |
+| 5 | 50.8% (layer 25) | 63.3% (layer 34) |
+| 6 | 57.3% (layer 20) | 70.5% (layer 0) |
+| 7 | 61.8% (layer 20) | 77.4% (layer 0) |
+| 8 | 64.8% (layer 20) | 82.1% (layer 0) |
+
+The model-wide mean masks substantial layer variation. Layer 20 is the weakest at K=6–8, while layer 0 is strongest at those K values. Layer 25 is weakest at K=2–5. For K=1, layer 4—not layer 0—has the strongest mean top-1 match.
+
+## Metric details
+
+The teacher’s top-K target is formed by sorting its native top-8 experts by their normalized gate weights; the captured expert ID array itself is unordered. Matched-K recall and exact-set rate compare predicted and teacher sets of the same size. Top-8-pool coverage instead uses a fixed prediction pool of eight while the teacher target varies from one to eight. The two metrics answer different retrieval questions.
+
+Teacher top-K weight mass is the average normalized weight on those K teacher contributors. Predicted K-set native mass is the sum of native teacher weights assigned to the predicted K IDs, divided by total captured native top-8 mass. Therefore, at K=8 it is possible to recover 69.83% of the teacher expert IDs while capturing 73.95% of their total gate weight. All reported percentages are macro-averages across 40 layers; split SD reflects three topic-group seeds.
+
 ## Interpretation and limits
 
 The matched-K recall rises with larger K for this baseline, but exact-set rates remain low for K=2 through K=6. At K=8, 69.83% recall means about 5.6 of the eight reference experts are recovered on average. The prediction’s K-set captures 73.95% of native top-8 weight at K=8. These are router-proxy metrics, not generation-quality measurements.
-
